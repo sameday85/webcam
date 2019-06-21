@@ -30,14 +30,14 @@ void route()
     {
         //capture the picture
         char szCmd[255];
-        sprintf(szCmd, "fswebcam -S 10 -r 1280x720 %s >/dev/null 2>&1", CAM_IMAGE);
+        sprintf(szCmd, "fswebcam -S 10 -r 1280x720 %s >/dev/null 2>&1", CAM_IMAGE); //image size 589k
         system(szCmd);
     
         off_t len = fsize(CAM_IMAGE);
         if (len > 0) {
             printf("HTTP/1.1 200 OK\r\n");
             printf("Content-Type: image/jpg\r\n");
-            printf("Content-Disposition: attachment; filename=webcam.jpg");
+            printf("Content-Disposition: attachment; filename=webcam.jpg\r\n");
             printf("Content-Length: %lld\r\n\r\n", len);
             //now the image data
             int fd = open(CAM_IMAGE, O_RDONLY);
@@ -54,6 +54,7 @@ void route()
             printf("HTTP/1.1 404 Not Found\r\n\r\n");
         }
     }
+    
     ROUTE_END()
 }
 /* 

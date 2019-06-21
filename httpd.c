@@ -172,6 +172,7 @@ void respond(int clientfd)
         close(STDOUT_FILENO);
     }
 
+    free (buf);
     //Closing SOCKET
     shutdown(clientfd, SHUT_RDWR);         //All further send and recieve operations are DISABLED...
     close(clientfd);
