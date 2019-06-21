@@ -12,16 +12,13 @@
 #include <fcntl.h>
 #include <signal.h>
 
-#define CONNMAX 1000
-
-static int listenfd, clients[CONNMAX];
+static int listenfd;
 static void error(char *);
 static void startServer(const char *);
 static void respond(int);
 
 typedef struct { char *name, *value; } header_t;
 static header_t reqhdr[17] = { {"\0", "\0"} };
-static int clientfd;
 
 static char *buf;
 
@@ -30,18 +27,12 @@ void serve_forever(const char *PORT)
     struct sockaddr_in clientaddr;
     socklen_t addrlen;
     char c;    
-    
-    int slot=0;
-    
+        
     printf(
             "Server started %shttp://127.0.0.1:%s%s\n",
             "\033[92m",PORT,"\033[0m"
             );
 
-    // Setting all elements to -1: signifies there is no client connected
-    int i;
-    for (i=0; i<CONNMAX; i++)
-        clients[i]=-1;
     startServer(PORT);
     
     // Ignore SIGCHLD to avoid zombie threads
@@ -51,9 +42,9 @@ void serve_forever(const char *PORT)
     while (1)
     {
         addrlen = sizeof(clientaddr);
-        clients[slot] = accept (listenfd, (struct sockaddr *) &clientaddr, &addrlen);
+        int client_fd = accept (listenfd, (struct sockaddr *) &clientaddr, &addrlen);
 
-        if (clients[slot]<0)
+        if (client_fd<0)
         {
             perror("accept() error");
         }
@@ -61,12 +52,10 @@ void serve_forever(const char *PORT)
         {
             if ( fork()==0 )
             {
-                respond(slot);
+                respond(client_fd);
                 exit(0);
             }
         }
-
-        while (clients[slot]!=-1) slot = (slot+1)%CONNMAX;
     }
 }
 
@@ -123,13 +112,13 @@ char *request_header(const char* name)
 }
 
 //client connection
-void respond(int n)
+void respond(int clientfd)
 {
     int rcvd, fd, bytes_read;
     char *ptr;
 
     buf = malloc(65535);
-    rcvd=recv(clients[n], buf, 65535, 0);
+    rcvd=recv(clientfd, buf, 65535, 0);
 
     if (rcvd<0)    // receive error
         fprintf(stderr,("recv() error\n"));
@@ -172,9 +161,7 @@ void respond(int n)
         payload_size = t2 ? atol(t2) : (rcvd-(t-buf));
 
         // bind clientfd to stdout, making it easier to write
-        clientfd = clients[n];
         dup2(clientfd, STDOUT_FILENO);
-        close(clientfd);
 
         // call router
         route();
@@ -188,5 +175,4 @@ void respond(int n)
     //Closing SOCKET
     shutdown(clientfd, SHUT_RDWR);         //All further send and recieve operations are DISABLED...
     close(clientfd);
-    clients[n]=-1;
 }

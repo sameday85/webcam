@@ -37,7 +37,7 @@ void route()
         if (len > 0) {
             printf("HTTP/1.1 200 OK\r\n");
             printf("Content-Type: image/jpg\r\n");
-            printf("Content-Disposition: attachment; filename=%s", CAM_IMAGE);
+            printf("Content-Disposition: attachment; filename=webcam.jpg");
             printf("Content-Length: %lld\r\n\r\n", len);
             //now the image data
             int fd = open(CAM_IMAGE, O_RDONLY);
@@ -56,7 +56,8 @@ void route()
     }
     ROUTE_END()
 }
-/*  $ch = curl_init('http://localhost:8080/fswebcam');
+/* 
+    $ch = curl_init('http://localhost:8080/fswebcam');
     $fp = fopen('/somewhere/upload/today.jpg', 'wb');
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
     curl_setopt($ch, CURLOPT_FILE, $fp);
