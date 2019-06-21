@@ -18,7 +18,7 @@ off_t fsize(const char *filename) {
 
 int main(int c, char** v)
 {
-    serve_forever("80");
+    serve_forever(c > 1 ? v[1] : "80");
     return 0;
 }
 
@@ -30,10 +30,9 @@ void route()
     {
         //capture the picture
         char szCmd[255];
-        sprintf(szCmd, "fswebcam -S 10 -r 1920x720 %s >/dev/null 2>&1", CAM_IMAGE);
+        sprintf(szCmd, "fswebcam -S 10 -r 1280x720 %s >/dev/null 2>&1", CAM_IMAGE);
         system(szCmd);
     
-        //curl -f -o /var/wwww/html/album/today.jpg http://192.168.1.7/fswebcam
         off_t len = fsize(CAM_IMAGE);
         if (len > 0) {
             printf("HTTP/1.1 200 OK\r\n");
@@ -57,3 +56,11 @@ void route()
     }
     ROUTE_END()
 }
+/*  $ch = curl_init('http://localhost:8080/fswebcam');
+    $fp = fopen('/somewhere/upload/today.jpg', 'wb');
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($ch, CURLOPT_FILE, $fp);
+    curl_exec($ch);
+    curl_close($ch);
+    fclose($fp);
+*/
